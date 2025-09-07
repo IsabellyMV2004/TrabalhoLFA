@@ -5,6 +5,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
+import java.util.*;
+
 public class Representacao1 {
 
     @FXML
@@ -16,18 +18,46 @@ public class Representacao1 {
     @FXML
     public void executarER(ActionEvent actionEvent) {
         String expressao = txtExpressao.getText();
-        String alfabeto = txtAlfabeto.getText();
-        String regexPermitido = "^[0-9a-zA-Z*+|().]+$";
+        String alfabetoEntrada = txtAlfabeto.getText();
+        String regexPermitido = "^[0-9a-zA-Z*+|().&]+$";
 
         if (expressao == null || expressao.trim().isEmpty())
             txtSaida.setText("Digite uma expressão.");
         else {
-            if (!expressao.matches(regexPermitido))
-                txtSaida.setText("Erro: expressão contém símbolos inválidos!");
+            if (alfabetoEntrada == null || alfabetoEntrada.trim().isEmpty())
+                txtSaida.setText("Digite o alfabeto.");
             else {
-                String normalizar = expressao.replace("+", "|");
-                String[] blocos = normalizar.split("\\.");
-                StringBuilder regexFinal = new StringBuilder("^");
+                String[] blocos, simbolos;
+                Set<String> alfabeto = new TreeSet<>();
+                String exp, normalizar, core, palavra;
+                StringBuilder regexFinal;
+                List<String> exemplos;
+                boolean aceita;
+
+                simbolos = alfabetoEntrada.split(",");
+                for (String s : simbolos) {
+                    s = s.trim();
+                    if (!s.isEmpty())
+                        alfabeto.add(s);
+                }
+
+                if (!expressao.matches(regexPermitido)) {
+                    txtSaida.setText("Erro: expressão contém símbolos inválidos!");
+                    return;
+                }
+
+                exp = expressao.replaceAll("[*+|().&]", "");
+                for (char c : exp.toCharArray()) {
+                    if (!alfabeto.contains(String.valueOf(c))) {
+                        txtSaida.setText("Erro: expressão contém símbolo '" + c + "' que não pertence ao alfabeto!");
+                        return;
+                    }
+                }
+
+                normalizar = expressao.replace("+", "|");
+
+                blocos = normalizar.split("\\.");
+                regexFinal = new StringBuilder("^");
 
                 for (String bloco : blocos)
                 {
@@ -36,31 +66,31 @@ public class Representacao1 {
                     {
                         if (bloco.endsWith("*"))
                         {
-                            String core = bloco.substring(0, bloco.length() - 1).trim();
+                            core = bloco.substring(0, bloco.length() - 1).trim();
                             if (core.contains("|") && !(core.startsWith("(") && core.endsWith(")")))
                                 core = "(" + core + ")";
-
                             regexFinal.append(core).append("*");
-                        } else
+                        }
+                        else
                         {
                             if (bloco.contains("|") && !(bloco.startsWith("(") && bloco.endsWith(")")))
                                 bloco = "(" + bloco + ")";
-
                             regexFinal.append(bloco);
                         }
                     }
                 }
                 regexFinal.append("$");
+                exemplos = gerarPalavras(new ArrayList<>(alfabeto), 5);
 
                 StringBuilder sb = new StringBuilder();
                 sb.append("Expressão válida!\n");
+                sb.append("A Palavra vazia é simbolizada &\n");
                 sb.append("Regex final: ").append(regexFinal.toString()).append("\n\n");
 
-                //String[] exemplos = testarPalavras();
-                String[] exemplos = {"a", "b", "aa", "ab", "aba", "aaa", "bbb", "abab"};
                 sb.append("Testes de palavras:\n");
                 for (String w : exemplos) {
-                    boolean aceita = w.matches(regexFinal.toString());
+                    palavra = w.equals("&") ? "" : w;
+                    aceita = palavra.matches(regexFinal.toString());
                     sb.append(String.format("%-6s -> %s\n", w, aceita ? "ACEITA" : "REJEITADA"));
                 }
 
@@ -69,12 +99,22 @@ public class Representacao1 {
         }
     }
 
-      /*  public String[] testarPalavras(){
-            String[] palavras;
+    private List<String> gerarPalavras(List<String> alfabeto, int maxLen) {
+        List<String> resultado = new ArrayList<>();
+        resultado.add("&");
+        gerar("", alfabeto, maxLen, resultado);
+        return resultado;
+    }
 
-            return palavras;
-        }
-*/
+    private void gerar(String prefixo, List<String> alfabeto, int maxLen, List<String> resultado) {
+        if (prefixo.length() > 0)
+            resultado.add(prefixo);
+
+        if (prefixo.length() != maxLen)
+            for (String s : alfabeto)
+                gerar(prefixo + s, alfabeto, maxLen, resultado);
+
+    }
 
     @FXML
     public void voltar(ActionEvent actionEvent) throws Exception {
