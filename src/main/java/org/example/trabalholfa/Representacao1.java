@@ -1,3 +1,179 @@
+/*package org.example.trabalholfa;
+
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+
+import java.util.*;
+
+public class Representacao1 {
+
+    @FXML
+    private TextField txtExpressao, txtAlfabeto;
+
+    @FXML
+    private TextArea txtSaida;
+
+    @FXML
+    public void executarER(ActionEvent actionEvent) {
+        String expressao = txtExpressao.getText();
+        String alfabetoEntrada = txtAlfabeto.getText();
+        String permitido = "^[0-9a-zA-Z*+|().&]+$";
+
+        StringBuilder sb = new StringBuilder();
+        boolean flag = true;
+
+        if (expressao == null || expressao.trim().isEmpty()) {
+            sb.append("Digite uma expressão.\n");
+            flag = false;
+        }
+        if (alfabetoEntrada == null || alfabetoEntrada.trim().isEmpty()) {
+            sb.append("Digite o alfabeto.\n");
+            flag = false;
+        }
+
+        if (flag) {
+            String[] blocos, simbolos;
+            Set<String> alfabeto = new TreeSet<>();
+            List<String> formatar = new ArrayList<>();
+            String exp, normalizar, b;
+            StringBuilder regex;
+            List<String> exemplos;
+            int i = 0, cont;
+
+            // Processa o alfabeto
+            simbolos = alfabetoEntrada.split(",");
+            for (String s : simbolos) {
+                s = s.trim();
+                if (!s.isEmpty())
+                    alfabeto.add(s);
+            }
+
+            // Verifica símbolos inválidos
+            if (!expressao.matches(permitido)) {
+                sb.append("Erro: expressão contém símbolos inválidos!");
+                flag = false;
+            } else {
+                // Verifica se ER contém símbolos fora do alfabeto
+                exp = expressao.replaceAll("[*+|().&]", "");
+                boolean erroAlfabeto = false;
+                for (char c : exp.toCharArray()) {
+                    if (!alfabeto.contains(String.valueOf(c)) && !erroAlfabeto) {
+                        sb.append("Erro: expressão contém símbolos que não pertencem ao alfabeto!");
+                        flag = false;
+                        erroAlfabeto = true;
+                    }
+                }
+
+                if (flag) {
+                    // Normaliza a expressão (substitui + por |)
+                    normalizar = expressao.replace("+", "|");
+                    blocos = normalizar.split("\\.");
+
+                    // Formata blocos (coloca parênteses quando necessário)
+                    for (String bloco : blocos) {
+                        bloco = bloco.trim();
+                        if (!bloco.isEmpty()) {
+                            if (bloco.endsWith("*")) {
+                                String core = bloco.substring(0, bloco.length() - 1).trim();
+                                if (core.contains("|") && !(core.startsWith("(") && core.endsWith(")")))
+                                    core = "(" + core + ")";
+                                formatar.add(core + "*");
+                            } else {
+                                if (bloco.contains("|") && !(bloco.startsWith("(") && bloco.endsWith(")")))
+                                    bloco = "(" + bloco + ")";
+                                formatar.add(bloco);
+                            }
+                        }
+                    }
+
+                    // Monta regex final
+                    regex = new StringBuilder("^");
+                    while (i < formatar.size()) {
+                        b = formatar.get(i);
+                        cont = 1;
+                        while (i + cont < formatar.size() && formatar.get(i + cont).equals(b))
+                            cont++;
+
+                        if (cont > 1 && !b.endsWith("*"))
+                            regex.append(b).append("{").append(cont).append("}");
+                        else
+                            for (int k = 0; k < cont; k++)
+                                regex.append(b);
+
+                        i += cont;
+                    }
+                    regex.append("$");
+
+                    // Gera exemplos
+                    exemplos = gerarPalavras(new ArrayList<>(alfabeto), 5);
+
+                    sb.append("Expressão válida!\n");
+                    sb.append("A Palavra vazia é simbolizada &\n");
+                    sb.append("Regex final: ").append(regex.toString()).append("\n\n");
+
+                    sb.append("Testes de palavras:\n");
+                    for (String w : exemplos) {
+                        boolean aceita;
+                        if (w.equals("&")) {
+                            // Se & estiver no alfabeto, testamos como símbolo literal
+                            if (alfabeto.contains("&")) {
+                                aceita = w.matches(regex.toString());
+                            } else {
+                                // Caso contrário, representa palavra vazia real
+                                aceita = "".matches(regex.toString());
+                            }
+                        } else {
+                            aceita = w.matches(regex.toString());
+                        }
+                        sb.append(String.format("%-6s -> %s\n", w, aceita ? "ACEITA" : "REJEITADA"));
+                    }
+                }
+            }
+        }
+
+        txtSaida.setText(sb.toString());
+    }
+
+    private List<String> gerarPalavras(List<String> alfabeto, int maxLen) {
+        List<String> resultado = new ArrayList<>();
+        resultado.add("&"); // representa palavra vazia
+        Collections.sort(alfabeto);
+        for (int len = 1; len <= maxLen; len++)
+            gerarPorTamanho(new ArrayList<>(), alfabeto, len, resultado);
+
+        return resultado;
+    }
+
+    private void gerarPorTamanho(List<String> partes, List<String> alfabeto, int alvoLen, List<String> resultado) {
+        if (partes.size() == alvoLen) {
+            StringBuilder sb = new StringBuilder();
+            for (String p : partes)
+                sb.append(p);
+            resultado.add(sb.toString());
+        } else
+            for (int i = 0; i < alfabeto.size(); i++) {
+                partes.add(alfabeto.get(i));
+                gerarPorTamanho(partes, alfabeto, alvoLen, resultado);
+                partes.remove(partes.size() - 1);
+            }
+    }
+
+    @FXML
+    public void voltar(ActionEvent actionEvent) throws Exception {
+        javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(
+                getClass().getResource("/org/example/trabalholfa/main-view.fxml"));
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+
+        javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) actionEvent.getSource()).getScene().getWindow();
+        stage.setScene(scene);
+        stage.show();
+    }
+}
+*/
+
+
 package org.example.trabalholfa;
 
 import javafx.event.ActionEvent;
@@ -24,72 +200,63 @@ public class Representacao1 {
         StringBuilder sb = new StringBuilder();
         boolean flag = true;
 
-        if (expressao == null || expressao.trim().isEmpty())
-        {
+        if (expressao == null || expressao.trim().isEmpty()) {
             sb.append("Digite uma expressão.\n");
             flag = false;
         }
-        if (alfabetoEntrada == null || alfabetoEntrada.trim().isEmpty())
-        {
+        if (alfabetoEntrada == null || alfabetoEntrada.trim().isEmpty()) {
             sb.append("Digite o alfabeto.\n");
             flag = false;
         }
 
-        if (flag)
-        {
+        if (flag) {
             String[] blocos, simbolos;
             Set<String> alfabeto = new TreeSet<>();
             List<String> formatar = new ArrayList<>();
-            String exp, normalizar, palavra, b;
+            String exp, normalizar, b;
             StringBuilder regex;
             List<String> exemplos;
-            boolean aceita;
             int i = 0, cont;
 
+            // Processa o alfabeto
             simbolos = alfabetoEntrada.split(",");
-            for (String s : simbolos)
-            {
+            for (String s : simbolos) {
                 s = s.trim();
                 if (!s.isEmpty())
                     alfabeto.add(s);
             }
 
-            if (!expressao.matches(permitido))
-            {
+            // Verifica símbolos inválidos
+            if (!expressao.matches(permitido)) {
                 sb.append("Erro: expressão contém símbolos inválidos!");
                 flag = false;
-            }
-            else
-            {
+            } else {
+                // Verifica se ER contém símbolos fora do alfabeto
                 exp = expressao.replaceAll("[*+|().&]", "");
                 boolean erroAlfabeto = false;
-                for (char c : exp.toCharArray())
-                    if (!alfabeto.contains(String.valueOf(c)) && !erroAlfabeto)
-                    {
+                for (char c : exp.toCharArray()) {
+                    if (!alfabeto.contains(String.valueOf(c)) && !erroAlfabeto) {
                         sb.append("Erro: expressão contém símbolos que não pertencem ao alfabeto!");
                         flag = false;
                         erroAlfabeto = true;
                     }
+                }
 
-                if (flag)
-                {
+                if (flag) {
+                    // Normaliza a expressão (substitui + por |)
                     normalizar = expressao.replace("+", "|");
                     blocos = normalizar.split("\\.");
 
-                    for (String bloco : blocos)
-                    {
+                    // Formata blocos (coloca parênteses quando necessário)
+                    for (String bloco : blocos) {
                         bloco = bloco.trim();
-                        if (!bloco.isEmpty())
-                        {
-                            if (bloco.endsWith("*"))
-                            {
+                        if (!bloco.isEmpty()) {
+                            if (bloco.endsWith("*")) {
                                 String core = bloco.substring(0, bloco.length() - 1).trim();
                                 if (core.contains("|") && !(core.startsWith("(") && core.endsWith(")")))
                                     core = "(" + core + ")";
                                 formatar.add(core + "*");
-                            }
-                            else
-                            {
+                            } else {
                                 if (bloco.contains("|") && !(bloco.startsWith("(") && bloco.endsWith(")")))
                                     bloco = "(" + bloco + ")";
                                 formatar.add(bloco);
@@ -97,9 +264,9 @@ public class Representacao1 {
                         }
                     }
 
+                    // Monta regex final
                     regex = new StringBuilder("^");
-                    while (i < formatar.size())
-                    {
+                    while (i < formatar.size()) {
                         b = formatar.get(i);
                         cont = 1;
                         while (i + cont < formatar.size() && formatar.get(i + cont).equals(b))
@@ -108,13 +275,14 @@ public class Representacao1 {
                         if (cont > 1 && !b.endsWith("*"))
                             regex.append(b).append("{").append(cont).append("}");
                         else
-                            for (int k = 0;k < cont;k++)
+                            for (int k = 0; k < cont; k++)
                                 regex.append(b);
 
                         i += cont;
                     }
-
                     regex.append("$");
+
+                    // Gera exemplos
                     exemplos = gerarPalavras(new ArrayList<>(alfabeto), 5);
 
                     sb.append("Expressão válida!\n");
@@ -122,10 +290,20 @@ public class Representacao1 {
                     sb.append("Regex final: ").append(regex.toString()).append("\n\n");
 
                     sb.append("Testes de palavras:\n");
-                    for (String w : exemplos)
-                    {
-                        palavra = w.equals("&") ? "" : w;
-                        aceita = palavra.matches(regex.toString());
+                    for (String w : exemplos) {
+                        boolean aceita;
+                        if (w.equals("&")) {
+                            // Verifica se & aparece explicitamente na expressão
+                            if (expressao.contains("&")) {
+                                // & literal na expressão
+                                aceita = w.matches(regex.toString());
+                            } else {
+                                // palavra vazia real
+                                aceita = "".matches(regex.toString());
+                            }
+                        } else {
+                            aceita = w.matches(regex.toString());
+                        }
                         sb.append(String.format("%-6s -> %s\n", w, aceita ? "ACEITA" : "REJEITADA"));
                     }
                 }
@@ -137,25 +315,22 @@ public class Representacao1 {
 
     private List<String> gerarPalavras(List<String> alfabeto, int maxLen) {
         List<String> resultado = new ArrayList<>();
-        resultado.add("&");
+        resultado.add("&"); // representa palavra vazia
         Collections.sort(alfabeto);
-        for (int len = 1;len <= maxLen;len++)
+        for (int len = 1; len <= maxLen; len++)
             gerarPorTamanho(new ArrayList<>(), alfabeto, len, resultado);
 
         return resultado;
     }
 
     private void gerarPorTamanho(List<String> partes, List<String> alfabeto, int alvoLen, List<String> resultado) {
-        if (partes.size() == alvoLen)
-        {
+        if (partes.size() == alvoLen) {
             StringBuilder sb = new StringBuilder();
             for (String p : partes)
                 sb.append(p);
             resultado.add(sb.toString());
-        }
-        else
-            for (int i=0;i < alfabeto.size();i++)
-            {
+        } else
+            for (int i = 0; i < alfabeto.size(); i++) {
                 partes.add(alfabeto.get(i));
                 gerarPorTamanho(partes, alfabeto, alvoLen, resultado);
                 partes.remove(partes.size() - 1);
