@@ -310,7 +310,6 @@ public class Representacao1 {
     }
 }*/
 
-
 package org.example.trabalholfa;
 
 import javafx.event.ActionEvent;
@@ -373,12 +372,14 @@ public class Representacao1 {
             }
         }
 
-        // Normaliza a expressão: + → | e & → ()
-        String normalizar = expressao.replace("+", "|").replace("&", "()");
+        // Normaliza a expressão: + → | , remove '.' (concat explícita) ; mantém & como ε
+        String normalizar = expressao.replace("+", "|").replace(".", "");
 
         String regexFinal;
         try {
             regexFinal = construirRegex(normalizar);
+            // adiciona início e fim
+            regexFinal = "^" + regexFinal + "$";
         } catch (Exception e) {
             sb.append("Erro ao interpretar a expressão: ").append(e.getMessage());
             txtSaida.setText(sb.toString());
@@ -386,7 +387,7 @@ public class Representacao1 {
         }
 
         // Gera exemplos para teste
-        List<String> exemplos = gerarPalavras(new ArrayList<>(alfabeto), 3); // reduzir para 3 para exemplo
+        List<String> exemplos = gerarPalavras(new ArrayList<>(alfabeto), 6); // reduzir para 3 para exemplo
         exemplos.add(0, ""); // palavra vazia para teste
 
         sb.append("Expressão válida!\n");
@@ -404,12 +405,12 @@ public class Representacao1 {
 
     private String construirRegex(String expr) throws Exception {
         expr = expr.trim();
-        if (expr.isEmpty() || expr.equals("()")) return ""; // palavra vazia
+        if (expr.isEmpty() || expr.equals("&")) return ""; // palavra vazia -> regex vazia
         return parseExpr(expr);
     }
 
+    // parseExpr: trata uniões top-level (separadas por | ao nível 0)
     private String parseExpr(String expr) throws Exception {
-        // União no nível 0
         List<String> termos = new ArrayList<>();
         int nivel = 0;
         StringBuilder atual = new StringBuilder();
@@ -426,62 +427,108 @@ public class Representacao1 {
                 atual.append(c);
             }
         }
-        if (atual.length() > 0) termos.add(atual.toString());
+        // sempre adiciona o último (pode ser empty quando expr termina com '|' ou começa com '|')
+        termos.add(atual.toString());
 
         if (termos.size() > 1) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("(");
-            for (int i = 0; i < termos.size(); i++) {
-                sb.append(parseExpr(termos.get(i)));
-                if (i < termos.size() - 1) sb.append("|");
+            List<String> partes = new ArrayList<>();
+            for (String t : termos) {
+                // cada termo vira uma concatenação (pode retornar "" para &)
+                String p = parseConcat(t);
+                partes.add(p); // p pode ser "" (epsilon) — mantenha assim para gerar alternativa vazia
             }
-            sb.append(")");
-            return sb.toString();
+            // se todas as partes ficaram vazias, retorna vazio
+            boolean allEmpty = true;
+            for (String p : partes) if (!p.isEmpty()) { allEmpty = false; break; }
+            if (allEmpty) return "";
+
+            // monta união com grupo non-capturing; se existirem termos vazios, o join produzirá "": (?:|a|b)
+            return "(?:" + String.join("|", partes) + ")";
         }
 
-        // Concatenação implícita e Kleene
-        StringBuilder sbConcat = new StringBuilder();
-        nivel = 0;
-        atual.setLength(0);
+        // só um termo -> trata concatenação
+        return parseConcat(termos.get(0));
+    }
 
-        for (int i = 0; i < expr.length(); i++) {
-            char c = expr.charAt(i);
-            if (c == '(') nivel++;
-            else if (c == ')') nivel--;
-
-            atual.append(c);
-
-            // Verifica se próximo caractere inicia nova concatenação no nível 0
-            if (nivel == 0 && i + 1 < expr.length() && isConcat(expr.charAt(i + 1))) {
-                sbConcat.append(parseUnidade(atual.toString()));
-                atual.setLength(0);
+    // separa unidades (símbolos, parênteses, com possível Kleene *) e concatena
+    private String parseConcat(String termo) throws Exception {
+        termo = termo.trim();
+        if (termo.isEmpty()) return ""; // vazio => ε
+        List<String> unidades = new ArrayList<>();
+        int i = 0;
+        while (i < termo.length()) {
+            char c = termo.charAt(i);
+            if (c == '(') {
+                int start = i;
+                int nivel = 0;
+                do {
+                    char ch = termo.charAt(i);
+                    if (ch == '(') nivel++;
+                    else if (ch == ')') nivel--;
+                    i++;
+                    if (i > termo.length()) throw new Exception("Parênteses desbalanceados");
+                } while (i < termo.length() && nivel > 0);
+                String unit = termo.substring(start, i); // inclui parênteses
+                // checa '*' após ')'
+                if (i < termo.length() && termo.charAt(i) == '*') {
+                    unit += "*";
+                    i++;
+                }
+                unidades.add(unit);
+            } else if (Character.isLetterOrDigit(c) || c == '&') {
+                String unit = String.valueOf(c);
+                i++;
+                if (i < termo.length() && termo.charAt(i) == '*') {
+                    unit += "*";
+                    i++;
+                }
+                unidades.add(unit);
+            } else if (c == '.') {
+                // caso o usuário tenha esquecido a normalização; ignora concat explicita
+                i++;
+            } else {
+                throw new Exception("Caractere inesperado na concatenação: '" + c + "'");
             }
         }
-        if (atual.length() > 0) sbConcat.append(parseUnidade(atual.toString()));
 
-        return sbConcat.toString();
+        StringBuilder sb = new StringBuilder();
+        for (String u : unidades) {
+            sb.append(parseUnidade(u));
+        }
+        return sb.toString();
     }
 
     private String parseUnidade(String unidade) throws Exception {
         unidade = unidade.trim();
-        if (unidade.equals("()")) return ""; // palavra vazia
+        if (unidade.equals("&")) return ""; // ε
 
-        // Trata Kleene *
-        if (unidade.endsWith("*")) {
-            String core = unidade.substring(0, unidade.length() - 1);
-            return "(" + parseExpr(core) + ")*";
+        boolean isStar = unidade.endsWith("*");
+        String core = isStar ? unidade.substring(0, unidade.length() - 1) : unidade;
+        String coreParsed;
+
+        if (core.startsWith("(") && core.endsWith(")")) {
+            // não reaplicar parênteses — parseExpr já produz (?:...) para uniões
+            coreParsed = parseExpr(core.substring(1, core.length() - 1));
+        } else {
+            coreParsed = core; // símbolo único (a, b, etc)
         }
 
-        // Remove parênteses externos se houver
-        if (unidade.startsWith("(") && unidade.endsWith(")")) {
-            return "(" + parseExpr(unidade.substring(1, unidade.length() - 1)) + ")";
+        if (isStar) {
+            if (coreParsed.isEmpty()) return ""; // (ε)* = ε
+            // se for um único símbolo alfanumérico: usar a*
+            if (coreParsed.length() == 1 && Character.isLetterOrDigit(coreParsed.charAt(0))) {
+                return coreParsed + "*";
+            } else {
+                // se já é um grupo non-capturing, apenas acrescenta '*'
+                if (coreParsed.startsWith("(?:") && coreParsed.endsWith(")")) {
+                    return coreParsed + "*";
+                } else {
+                    return "(?:" + coreParsed + ")*";
+                }
+            }
+        } else {
+            return coreParsed;
         }
-
-        return unidade;
-    }
-
-    private boolean isConcat(char c) {
-        return Character.isLetterOrDigit(c) || c == '(';
     }
 
     private List<String> gerarPalavras(List<String> alfabeto, int maxLen) {
