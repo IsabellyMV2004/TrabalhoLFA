@@ -102,24 +102,25 @@ public class Representacao1 {
     private String parseExpr(String expr) throws Exception {
         List<String> termos = new ArrayList<>();
         List<String> partes;
-        int nivel = 0;
+        int nivel = 0, i;
         StringBuilder atual = new StringBuilder();
         char c;
         boolean vazio;
 
-        for (int i = 0; i < expr.length(); i++) {
+        for (i = 0; i < expr.length(); i++) {
             c = expr.charAt(i);
-            if (c == '(')
+            if (c == '(') {
                 nivel++;
-            else if (c == ')')
+            } else if (c == ')') {
                 nivel--;
+            }
 
             if (c == '|' && nivel == 0) {
                 termos.add(atual.toString());
                 atual.setLength(0);
-            } else
+            } else {
                 atual.append(c);
-
+            }
         }
         termos.add(atual.toString());
 
@@ -129,12 +130,17 @@ public class Representacao1 {
                 String p = parseConcat(t);
                 partes.add(p);
             }
+
             vazio = true;
-            for (String p : partes)
+            i = 0;
+            while (i < partes.size() && vazio) {
+                String p = partes.get(i);
                 if (!p.isEmpty()) {
                     vazio = false;
-                    break;
                 }
+                i++;
+            }
+
             if (vazio)
                 return "";
 
@@ -143,6 +149,7 @@ public class Representacao1 {
 
         return parseConcat(termos.get(0));
     }
+
 
     private String parseConcat(String termo) throws Exception {
         termo = termo.trim();
