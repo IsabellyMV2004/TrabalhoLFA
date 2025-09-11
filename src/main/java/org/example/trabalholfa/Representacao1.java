@@ -15,15 +15,15 @@ import java.util.*;
 public class Representacao1 {
 
     @FXML
-    private TextField txtExpressao, txtAlfabeto;
+    private TextField txtExpressao;
 
     @FXML
-    private TextArea txtSaida;
+    private TextArea txtSaida, txtPalavras;
 
     @FXML
     public void executarER(ActionEvent actionEvent) {
         String expressao = txtExpressao.getText();
-        String alfabetoEntrada;// = txtAlfabeto.getText();
+        String alfabetoEntrada;// = txtPalavras.getText();
         String permitido = "^[0-9a-zA-Z*+|().&]+$";
         boolean erro = false;
         StringBuilder sb = new StringBuilder();
