@@ -2,8 +2,13 @@ package org.example.trabalholfa;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 import java.util.*;
 
@@ -18,7 +23,7 @@ public class Representacao1 {
     @FXML
     public void executarER(ActionEvent actionEvent) {
         String expressao = txtExpressao.getText();
-        String alfabetoEntrada = txtAlfabeto.getText();
+        String alfabetoEntrada;// = txtAlfabeto.getText();
         String permitido = "^[0-9a-zA-Z*+|().&]+$";
         boolean erro = false;
         StringBuilder sb = new StringBuilder();
@@ -28,14 +33,10 @@ public class Representacao1 {
             txtSaida.setText(sb.toString());
             erro = true;
         }
-        if (alfabetoEntrada == null || alfabetoEntrada.trim().isEmpty()) {
-            sb.append("Digite o alfabeto.\n");
-            txtSaida.setText(sb.toString());
-            erro = true;
-        }
 
         if(!erro) {
-            String[] simbolos = alfabetoEntrada.split(",");
+            //String[] simbolos = alfabetoEntrada.split(",");
+            String[] simbolos = definirAlfabeto(expressao);
             Set<String> alfabeto = new TreeSet<>();
             String exp,normalizar,regex;
             List<String> exemplos;
@@ -52,7 +53,7 @@ public class Representacao1 {
                 txtSaida.setText(sb.toString());
             }
             else {
-                exp = expressao.replaceAll("[*+|().]", "");
+               /* exp = expressao.replaceAll("[*+|().]", "");
                 for (char c : exp.toCharArray()) {
                     if (!alfabeto.contains(String.valueOf(c)) && c != '&') {
                         sb.append("Erro: expressão contém símbolos que não pertencem ao alfabeto!");
@@ -60,7 +61,7 @@ public class Representacao1 {
                         erro = true;
                     }
                 }
-                if(!erro) {
+                if(!erro) {*/
                     normalizar = expressao.replace("+", "|").replace(".", "");
 
 
@@ -87,9 +88,23 @@ public class Representacao1 {
                         sb.append("Erro ao interpretar a expressão: ").append(e.getMessage());
                         txtSaida.setText(sb.toString());
                     }
-                }
+               // }
             }
         }
+    }
+
+    private String[] definirAlfabeto(String expressao) {
+        List<String> alfabeto = new ArrayList<>();
+        String simbolos = "*+|().&";
+
+        for (int i = 0; i < expressao.length(); i++) {
+            char c = expressao.charAt(i);
+
+            if (simbolos.indexOf(c) == -1 && !alfabeto.contains(String.valueOf(c)))
+                alfabeto.add(String.valueOf(c));
+        }
+
+        return alfabeto.toArray(new String[0]);
     }
 
     private String construirRegex(String expr) throws Exception {
@@ -261,10 +276,10 @@ public class Representacao1 {
 
     @FXML
     public void voltar(ActionEvent actionEvent) throws Exception {
-        javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(
+        Parent root = FXMLLoader.load(
                 getClass().getResource("/org/example/trabalholfa/main-view.fxml"));
-        javafx.scene.Scene scene = new javafx.scene.Scene(root);
-        javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) actionEvent.getSource()).getScene().getWindow();
+        Scene scene = new Scene(root);
+        Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
         stage.setScene(scene);
         stage.show();
     }
