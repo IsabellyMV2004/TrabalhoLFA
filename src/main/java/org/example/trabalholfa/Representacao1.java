@@ -69,19 +69,16 @@ public class Representacao1 {
                         regex = construirRegex(normalizar);
                         regex = "^" + regex + "$";
 
-                        exemplos = gerarPalavras(new ArrayList<>(alfabeto), 6);
-                        exemplos.add(0, "");
+                        List<String> exemplosAceitos = gerarPrimeirasAceitas(new ArrayList<>(alfabeto), regex, 10);
 
                         sb.append("Expressão válida!\n");
                         sb.append("A palavra vazia é simbolizada &\n");
                         sb.append("Regex final: ").append(regex).append("\n\n");
-                        sb.append("Testes de palavras:\n");
+                        sb.append("10 primeiras palavras aceitas:\n");
 
-                        for (String w : exemplos)
-                        {
-                            aceita = w.matches(regex);
-                            sb.append(String.format("%-6s -> %s\n", w.isEmpty() ? "&" : w, aceita ? "ACEITA" : "REJEITADA"));
-                        }
+                        for (String w : exemplosAceitos)
+                            sb.append(w.isEmpty() ? "&" : w).append("\n");
+
 
                         txtSaida.setText(sb.toString());
                     } catch (Exception e) {
@@ -252,12 +249,35 @@ public class Representacao1 {
             return analizado;
     }
 
-    private List<String> gerarPalavras(List<String> alfabeto, int maxLen) {
+    /*private List<String> gerarPalavras(List<String> alfabeto, int maxLen) {
         List<String> resultado = new ArrayList<>();
         Collections.sort(alfabeto);
         for (int len = 1; len <= maxLen; len++)
             gerarPorTamanho(new ArrayList<>(), alfabeto, len, resultado);
         return resultado;
+    }*/
+
+    private List<String> gerarPrimeirasAceitas(List<String> alfabeto, String regex, int limite) {
+        List<String> aceitas = new ArrayList<>();
+        Queue<String> fila = new LinkedList<>();
+        Collections.sort(alfabeto);
+        String atual;
+
+        fila.add("");
+
+        while (!fila.isEmpty() && aceitas.size() < limite)
+        {
+            atual = fila.poll();
+
+            if (atual.matches(regex))
+                aceitas.add(atual);
+
+            if (aceitas.size() < limite)
+                for (String s : alfabeto)
+                    fila.add(atual + s);
+        }
+
+        return aceitas;
     }
 
     private void gerarPorTamanho(List<String> partes, List<String> alfabeto, int alvoLen, List<String> resultado) {
