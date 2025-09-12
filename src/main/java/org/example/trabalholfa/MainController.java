@@ -25,9 +25,23 @@ public class MainController {
         stage.show();
     }
 
-    public void onRep2(ActionEvent actionEvent) {
+    @FXML
+    public void onRep2(ActionEvent actionEvent) throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource("/org/example/trabalholfa/representacao-2-view.fxml"));
+        Scene scene = new Scene(root);
+
+        Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
+        stage.setScene(scene);
+        stage.show();
     }
 
-    public void onRep3(ActionEvent actionEvent) {
+    @FXML
+    public void onRep3(ActionEvent actionEvent) throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource("/org/example/trabalholfa/representacao-3-view.fxml"));
+        Scene scene = new Scene(root);
+
+        Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
+        stage.setScene(scene);
+        stage.show();
     }
 }

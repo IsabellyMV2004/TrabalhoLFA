@@ -1,16 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<?import javafx.scene.control.Button?>
-<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="org.example.trabalholfa.MainController">
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-    </padding>
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.trabalholfa.Representacao2">
 
-    <Label fx:id="welcomeText"/>
-    <Button text="Hello!" onAction="#onHelloButtonClick"/>
-</VBox>
+    <!-- Barra de ferramentas em cima -->
+    <top>
+        <ToolBar>
+            <items>
+                <ToggleButton text="Selecionar" fx:id="selectBtn" />
+                <ToggleButton text="Estado" fx:id="stateBtn" />
+                <ToggleButton text="Transição" fx:id="transBtn" />
+                <Separator orientation="VERTICAL"/>
+                <Button text="Salvar .jff" fx:id="saveBtn" />
+                <Button text="Carregar .jff" fx:id="loadBtn" />
+            </items>
+        </ToolBar>
+    </top>
+
+    <!-- Canvas onde desenha os estados/transições -->
+    <center>
+        <Pane fx:id="canvasArea" style="-fx-background-color: white;"/>
+    </center>
+
+</BorderPane>
