@@ -55,53 +55,41 @@ public class Representacao1 {
                 txtSaida.setText(sb.toString());
             }
             else {
-               /* exp = expressao.replaceAll("[*+|().]", "");
-                for (char c : exp.toCharArray()) {
-                    if (!alfabeto.contains(String.valueOf(c)) && c != '&') {
-                        sb.append("Erro: expressão contém símbolos que não pertencem ao alfabeto!");
-                        txtSaida.setText(sb.toString());
-                        erro = true;
+                normalizar = expressao.replace("+", "|").replace(".", "");
+                try {
+                    regex = construirRegex(normalizar);
+                    regex = "^" + regex + "$";
+                    sb.append("Expressão válida!\n");
+                    sb.append("A palavra vazia é simbolizada &\n");
+                    sb.append("Regex final: ").append(regex).append("\n\n");
+                    if(palavrasTeste == null || palavrasTeste.trim().isEmpty()) {
+                        exemplos = gerarPrimeirasAceitas(new ArrayList<>(alfabeto), regex, 10, sb);
+                        sb.append("Primeiras Palavras Aceitas:\n");
+                        for (String w : exemplos)
+                            sb.append(w.isEmpty() ? "&" : w).append("\n");
+
                     }
+                    else{
+                        //exemplos = validarPalavras(new ArrayList<>(palavrasTeste));
+                        exemplos.add(0, "");
+
+                        palavrasArray = palavrasTeste.split("\n");
+                        exemplos.addAll(Arrays.asList(palavrasArray));
+                        exemplos.remove("&");
+                        sb.append("Testes das Palavras:\n");
+
+                        for (String w : exemplos)
+                        {
+                            aceita = w.matches(regex);
+                            sb.append(String.format("%-6s -> %s\n", w.isEmpty() ? "&" : w, aceita ? "ACEITA" : "REJEITADA"));
+                        }
+
+                    }
+                    txtSaida.setText(sb.toString());
+                } catch (Exception e) {
+                    sb.append("Erro ao interpretar a expressão: ").append(e.getMessage());
+                    txtSaida.setText(sb.toString());
                 }
-                if(!erro) {*/
-                    normalizar = expressao.replace("+", "|").replace(".", "");
-
-
-                    try {
-                        regex = construirRegex(normalizar);
-                        regex = "^" + regex + "$";
-                        sb.append("Expressão válida!\n");
-                        sb.append("A palavra vazia é simbolizada &\n");
-                        sb.append("Regex final: ").append(regex).append("\n\n");
-                        if(palavrasTeste == null || palavrasTeste.trim().isEmpty()) {
-                            exemplos = gerarPrimeirasAceitas(new ArrayList<>(alfabeto), regex, 10);
-                            sb.append("10 primeiras palavras aceitas:\n");
-                            for (String w : exemplos)
-                                sb.append(w.isEmpty() ? "&" : w).append("\n");
-
-                        }
-                        else{
-                            //exemplos = validarPalavras(new ArrayList<>(palavrasTeste));
-                            exemplos.add(0, "");
-
-                            palavrasArray = palavrasTeste.split("\n");
-                            exemplos.addAll(Arrays.asList(palavrasArray));
-                            exemplos.remove("&");
-                            sb.append("Testes das Palavras:\n");
-
-                            for (String w : exemplos)
-                            {
-                                aceita = w.matches(regex);
-                                sb.append(String.format("%-6s -> %s\n", w.isEmpty() ? "&" : w, aceita ? "ACEITA" : "REJEITADA"));
-                            }
-
-                        }
-                        txtSaida.setText(sb.toString());
-                    } catch (Exception e) {
-                        sb.append("Erro ao interpretar a expressão: ").append(e.getMessage());
-                        txtSaida.setText(sb.toString());
-                    }
-               // }
             }
         }
     }
@@ -265,42 +253,39 @@ public class Representacao1 {
             return analizado;
     }
 
-    private List<String> gerarPrimeirasAceitas(List<String> alfabeto, String regex, int limite) {
+    private List<String> gerarPrimeirasAceitas(List<String> alfabeto, String regex, int limite,StringBuilder sb ) {
         List<String> aceitas = new ArrayList<>();
         Queue<String> fila = new LinkedList<>();
         Collections.sort(alfabeto);
         String atual;
-
         fila.add("");
+        boolean parar = false;
+        int cont = 0;
 
-        while (!fila.isEmpty() && aceitas.size() < limite)
-        {
+        while (!fila.isEmpty() && aceitas.size() < limite && !parar) {
             atual = fila.poll();
 
-            if (atual.matches(regex))
+            if (atual.matches(regex)) {
                 aceitas.add(atual);
+                cont = 0;
+            }
 
             if (aceitas.size() < limite)
                 for (String s : alfabeto)
                     fila.add(atual + s);
+
+            cont++;
+            if (cont > 1000) {
+                sb.append("Aviso: A expressão regular gerou menos de 10 palavras válidas.\n");
+                parar = true;
+            }
         }
 
+        if (aceitas.size() < limite)
+            sb.append("Aviso: A expressão regular gerou menos de " + limite + " palavras válidas.\n");
         return aceitas;
     }
 
-    private void gerarPorTamanho(List<String> partes, List<String> alfabeto, int alvoLen, List<String> resultado) {
-        if (partes.size() == alvoLen) {
-            StringBuilder sb = new StringBuilder();
-            for (String p : partes) sb.append(p);
-            resultado.add(sb.toString());
-        } else {
-            for (String s : alfabeto) {
-                partes.add(s);
-                gerarPorTamanho(partes, alfabeto, alvoLen, resultado);
-                partes.remove(partes.size() - 1);
-            }
-        }
-    }
 
     @FXML
     public void voltar(ActionEvent actionEvent) throws Exception {
