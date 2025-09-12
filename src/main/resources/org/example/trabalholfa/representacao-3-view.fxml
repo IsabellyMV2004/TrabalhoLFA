@@ -1,16 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
-
 <?import javafx.scene.control.Button?>
-<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="org.example.trabalholfa.MainController">
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-    </padding>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-    <Label fx:id="welcomeText"/>
-    <Button text="Hello!" onAction="#onHelloButtonClick"/>
-</VBox>
+<AnchorPane style="-fx-background-color: #EAF9D9;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.trabalholfa.Representacao3">
+   <children>
+      <VBox alignment="CENTER" spacing="15.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+         <children>
+            <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Representação 3 - Especificar a Gramática  Regular" />
+            <Label style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Informar gramática" textAlignment="CENTER">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <TextArea fx:id="txtGramatica" prefHeight="92.0" prefWidth="478.0" promptText="Digite aqui sua gramática" />
+            <Button onAction="#executarGR" text="Executar" />
+            <Label text="Saída:" />
+            <TextArea fx:id="txtSaida" editable="false" prefHeight="200" />
+            <Button onAction="#voltar" text="Voltar" />
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
