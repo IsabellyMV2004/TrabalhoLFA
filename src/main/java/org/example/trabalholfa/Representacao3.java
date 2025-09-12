@@ -197,18 +197,27 @@ public class Representacao3 {
             txtSaida.setText("Digite uma gramática.");
         else{
             try {
+                String[] linhas, lados, lista;
+                String nt, prodStr, prod, palavra;
+                Set<String> alfabetoSet = new TreeSet<>();
+                List<String> alfabeto, geradas;
+                char ch;
+                int limite = 10;
+                int maxLen = 7;
+                boolean aceita;
+
                 regras.clear();
-                String[] linhas = gramatica.split("\\r?\\n");
+                linhas = gramatica.split("\\r?\\n");
                 for (String linha : linhas) {
                     linha = linha.trim();
                     if (linha.isEmpty()) continue;
-                    String[] lados = linha.split("->");
+                    lados = linha.split("->");
                     if (lados.length != 2) throw new Exception("Regra inválida: " + linha);
-                    String nt = lados[0].trim();
-                    String prodStr = lados[1].trim();
+                    nt = lados[0].trim();
+                    prodStr = lados[1].trim();
                     String[] prods = prodStr.split("\\|");
                     for (String p : prods) {
-                        String prod = p.trim();
+                        prod = p.trim();
                         regras.computeIfAbsent(nt, k -> new ArrayList<>()).add(prod);
                     }
                 }
@@ -216,33 +225,30 @@ public class Representacao3 {
                 sb.append("Gramática carregada com sucesso!\n\n");
 
                 // descobrir alfabeto (terminais) a partir das produções
-                Set<String> alfabetoSet = new TreeSet<>();
-                for (List<String> prods : regras.values()) {
-                    for (String p : prods) {
-                        for (int i = 0; i < p.length(); ++i) {
-                            char ch = p.charAt(i);
+                for (List<String> prods : regras.values())
+                    for (String p : prods)
+                        for (int i = 0; i < p.length(); ++i)
+                        {
+                            ch = p.charAt(i);
                             if (!Character.isUpperCase(ch) && ch != '&')
                                 alfabetoSet.add(String.valueOf(ch));
-
                         }
-                    }
-                }
-                List<String> alfabeto = new ArrayList<>(alfabetoSet);
+
+
+                alfabeto = new ArrayList<>(alfabetoSet);
 
                 if (palavrasTeste == null || palavrasTeste.trim().isEmpty()) {
-                    int limite = 10;
-                    int maxLen = 7;
-                    List<String> geradas = gerarPrimeirasAceitas(alfabeto, limite, maxLen);
+                    geradas = gerarPrimeirasAceitas(alfabeto, limite, maxLen);
                     sb.append("Primeiras palavras aceitas:\n");
                     for (String w : geradas)
                         sb.append(w.isEmpty() ? "&" : w).append("\n");
                 } else {
                     sb.append("Testes das palavras:\n");
-                    String[] lista = palavrasTeste.split("\\r?\\n");
+                    lista = palavrasTeste.split("\\r?\\n");
                     for (String w : lista) {
-                        String palavra = w.trim();
+                        palavra = w.trim();
                         if (palavra.equals("&")) palavra = "";
-                        boolean aceita = pertenceAGramatica(palavra);
+                        aceita = pertenceAGramatica(palavra);
                         sb.append(String.format("%-8s -> %s\n", w.isEmpty() ? "&" : w, aceita ? "ACEITA" : "REJEITADA"));
                     }
                 }
@@ -256,12 +262,12 @@ public class Representacao3 {
 
     // Retorna true se palavra pertence à gramática
     private boolean pertenceAGramatica(String palavra) {
-        Set<Integer> posicoes = derivePositions("S", palavra, 0);
+        Set<Integer> posicoes = derivePosicoes("S", palavra, 0);
         return posicoes.contains(palavra.length());
     }
 
-    // Retorna conjunto de posições alcançáveis ao derivar 'simbolo' a partir da posição 'pos'
-    private Set<Integer> derivePositions(String simbolo, String palavra, int pos) {
+    // Retorna conjunto de posições possiveis
+    private Set<Integer> derivePosicoes(String simbolo, String palavra, int pos) {
         Set<Integer> resultado = new HashSet<>();
         List<String> prods = regras.get(simbolo);
         if (prods == null)
@@ -271,77 +277,88 @@ public class Representacao3 {
             if (prod.equals("&"))
                 resultado.add(pos);
             else
-                resultado.addAll(parseProductionPositions(prod, palavra, pos));
+                resultado.addAll(analisarPosicao(prod, palavra, pos));
         }
         return resultado;
     }
 
-    // Dada uma produção e uma posição inicial retorna os índices finais possíveis
-    private Set<Integer> parseProductionPositions(String prod, String palavra, int pos) {
-        Set<Integer> positions = new HashSet<>();
-        positions.add(pos);
+    private Set<Integer> analisarPosicao(String prod, String palavra, int pos) {
+        Set<Integer> posicoes = new HashSet<>();
+        int i = 0;
+        boolean interromper = false;
+        char ch;
+        Set<Integer> proximo;
 
-        for (int i = 0; i < prod.length(); ++i) {
-            char ch = prod.charAt(i);
-            Set<Integer> next = new HashSet<>();
+        posicoes.add(pos);
+        while (i < prod.length() && !interromper) {
+            ch = prod.charAt(i);
+            proximo = new HashSet<>();
 
-            for (int p : positions) {
-                if (p > palavra.length()) continue;
-
-                if (Character.isUpperCase(ch)) {
-                    // não-terminal: expandir recursivamente (pode produzir vários comprimentos)
-                    Set<Integer> res = derivePositions(String.valueOf(ch), palavra, p);
-                    next.addAll(res);
-                } else {
-                    // terminal ou & (epsílio já tratado antes)
-                    if (ch == '&') {
-                        next.add(p); // epsilon: não consome símbolo
-                    } else {
-                        if (p < palavra.length() && palavra.charAt(p) == ch) {
-                            next.add(p + 1);
-                        }
+            for (int p : posicoes)
+                if (p <= palavra.length())
+                    if (Character.isUpperCase(ch))
+                    {
+                        Set<Integer> res = derivePosicoes(String.valueOf(ch), palavra, p);
+                        proximo.addAll(res);
                     }
-                }
-            }
+                    else
+                        if (ch == '&')
+                            proximo.add(p);
+                        else
+                            if (p < palavra.length() && palavra.charAt(p) == ch)
+                                proximo.add(p + 1);
 
-            positions = next;
-            if (positions.isEmpty()) break; // nenhuma derivação segue adiante
+
+            posicoes = proximo;
+            if (posicoes.isEmpty())
+                interromper = true;
+
+            i++;
         }
 
-        return positions;
+        return posicoes;
     }
 
-
+    // Gera as primeiras palavras aceitas pela gramática
     private List<String> gerarPrimeirasAceitas(List<String> alfabeto, int limite, int maxLen) {
         List<String> aceitas = new ArrayList<>();
-        if (alfabeto == null) alfabeto = new ArrayList<>();
+        List<String> alfabetoUsado = (alfabeto == null) ? new ArrayList<>() : alfabeto;
+        int len = 1;
+        boolean aceitaVazio = pertenceAGramatica("");
 
-        // se aceita vazio, incluí ele primeiro
-        if (pertenceAGramatica("")) {
+        if (aceitaVazio)
             aceitas.add("");
-            if (aceitas.size() >= limite)
-                return aceitas;
-        }
 
-        // gerar por tamanhos crescentes
-        for (int len = 1; len <= maxLen && aceitas.size() < limite; ++len)
-            gerarDeTamanho(alfabeto, len, "", aceitas, limite);
+        while (len <= maxLen && aceitas.size() < limite)
+        {
+            gerarDeTamanho(alfabetoUsado, len, "", aceitas, limite);
+            len++;
+        }
 
         return aceitas;
     }
 
+    // Função recursiva para gerar strings de tamanho fixo
     private void gerarDeTamanho(List<String> alfabeto, int faltam, String prefixo, List<String> aceitas, int limite) {
-        if (aceitas.size() >= limite)
-            return;
-        if (faltam == 0) {
-            if (pertenceAGramatica(prefixo))
+        boolean deveContinuar = aceitas.size() < limite;
+        boolean aceita;
+        int i = 0;
+        if (faltam == 0 && deveContinuar)
+        {
+            aceita = pertenceAGramatica(prefixo);
+            if (aceita)
                 aceitas.add(prefixo);
-            return;
         }
-        for (String s : alfabeto) {
-            if (aceitas.size() >= limite) break;
-            gerarDeTamanho(alfabeto, faltam - 1, prefixo + s, aceitas, limite);
-        }
+        else
+            while (i < alfabeto.size() && deveContinuar)
+            {
+                String s = alfabeto.get(i);
+                gerarDeTamanho(alfabeto, faltam - 1, prefixo + s, aceitas, limite);
+
+                // Atualiza se ainda pode continuar
+                deveContinuar = aceitas.size() < limite;
+                i++;
+            }
     }
 
     @FXML
