@@ -18,6 +18,12 @@
                </font>
             </Label>
             <TextArea fx:id="txtGramatica" prefHeight="92.0" prefWidth="478.0" promptText="Digite aqui sua gramática" />
+            <Label style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Palavras Teste" textAlignment="CENTER">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <TextArea fx:id="txtPalavras" prefHeight="92.0" prefWidth="478.0" promptText="Digite aqui suas palavras para testar" />
             <Button onAction="#executarGR" text="Executar" />
             <Label text="Saída:" />
             <TextArea fx:id="txtSaida" editable="false" prefHeight="200" />
