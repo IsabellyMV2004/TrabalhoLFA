@@ -24,6 +24,7 @@ public class Representacao1 {
     public void executarER(ActionEvent actionEvent) {
         String expressao = txtExpressao.getText();
         String alfabetoEntrada;// = txtPalavras.getText();
+        String palavrasTeste = txtPalavras.getText();
         String permitido = "^[0-9a-zA-Z*+|().&]+$";
         boolean erro = false;
         StringBuilder sb = new StringBuilder();
@@ -39,7 +40,8 @@ public class Representacao1 {
             String[] simbolos = definirAlfabeto(expressao);
             Set<String> alfabeto = new TreeSet<>();
             String exp,normalizar,regex;
-            List<String> exemplos;
+            List<String> exemplos = new ArrayList<>();
+            String[] palavrasArray;
             boolean aceita;
 
             for (String s : simbolos) {
@@ -68,18 +70,32 @@ public class Representacao1 {
                     try {
                         regex = construirRegex(normalizar);
                         regex = "^" + regex + "$";
-
-                        List<String> exemplosAceitos = gerarPrimeirasAceitas(new ArrayList<>(alfabeto), regex, 10);
-
                         sb.append("Expressão válida!\n");
                         sb.append("A palavra vazia é simbolizada &\n");
                         sb.append("Regex final: ").append(regex).append("\n\n");
-                        sb.append("10 primeiras palavras aceitas:\n");
+                        if(palavrasTeste == null || palavrasTeste.trim().isEmpty()) {
+                            exemplos = gerarPrimeirasAceitas(new ArrayList<>(alfabeto), regex, 10);
+                            sb.append("10 primeiras palavras aceitas:\n");
+                            for (String w : exemplos)
+                                sb.append(w.isEmpty() ? "&" : w).append("\n");
 
-                        for (String w : exemplosAceitos)
-                            sb.append(w.isEmpty() ? "&" : w).append("\n");
+                        }
+                        else{
+                            //exemplos = validarPalavras(new ArrayList<>(palavrasTeste));
+                            exemplos.add(0, "");
 
+                            palavrasArray = palavrasTeste.split("\n");
+                            exemplos.addAll(Arrays.asList(palavrasArray));
+                            exemplos.remove("&");
+                            sb.append("Testes das Palavras:\n");
 
+                            for (String w : exemplos)
+                            {
+                                aceita = w.matches(regex);
+                                sb.append(String.format("%-6s -> %s\n", w.isEmpty() ? "&" : w, aceita ? "ACEITA" : "REJEITADA"));
+                            }
+
+                        }
                         txtSaida.setText(sb.toString());
                     } catch (Exception e) {
                         sb.append("Erro ao interpretar a expressão: ").append(e.getMessage());
@@ -248,14 +264,6 @@ public class Representacao1 {
         } else
             return analizado;
     }
-
-    /*private List<String> gerarPalavras(List<String> alfabeto, int maxLen) {
-        List<String> resultado = new ArrayList<>();
-        Collections.sort(alfabeto);
-        for (int len = 1; len <= maxLen; len++)
-            gerarPorTamanho(new ArrayList<>(), alfabeto, len, resultado);
-        return resultado;
-    }*/
 
     private List<String> gerarPrimeirasAceitas(List<String> alfabeto, String regex, int limite) {
         List<String> aceitas = new ArrayList<>();
